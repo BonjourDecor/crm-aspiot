@@ -1,6 +1,13 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 
 const app = new Hono()
+
+app.use('/api/*', cors())
+
+app.get('/api/health', (c) => {
+  return c.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
 
 app.get('/', (c) => {
   return c.html(`<!DOCTYPE html>
@@ -8,8 +15,7 @@ app.get('/', (c) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ShtroCRM - CRM и Учёт для салонов штор</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>ShторCRM — CRM и Учёт для салонов штор</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -21,28 +27,21 @@ app.get('/', (c) => {
           fontFamily: { sans: ['Inter', 'sans-serif'] },
           colors: {
             brand: {
-              50: '#f0f5ff',
-              100: '#e0eaff',
-              200: '#c2d5ff',
-              300: '#93b4ff',
-              400: '#6090ff',
-              500: '#3b6cf7',
-              600: '#2550db',
-              700: '#1e3fb2',
-              800: '#1e3691',
-              900: '#1e3177',
+              50: '#f0f4ff',
+              100: '#dbe4ff',
+              200: '#bac8ff',
+              300: '#91a7ff',
+              400: '#748ffc',
+              500: '#5c7cfa',
+              600: '#4c6ef5',
+              700: '#4263eb',
+              800: '#3b5bdb',
+              900: '#364fc7',
             },
             accent: {
-              50: '#fdf4f0',
-              100: '#fce8dd',
-              200: '#f9ccbb',
-              300: '#f4a88e',
-              400: '#ee7e5a',
-              500: '#e85d35',
-              600: '#da4522',
-              700: '#b5351b',
-              800: '#902d1c',
-              900: '#75291c',
+              400: '#f59f00',
+              500: '#f08c00',
+              600: '#e67700',
             }
           }
         }
@@ -52,843 +51,931 @@ app.get('/', (c) => {
   <style>
     * { scroll-behavior: smooth; }
     body { font-family: 'Inter', sans-serif; }
-    
-    .gradient-hero {
-      background: linear-gradient(135deg, #1e3fb2 0%, #3b6cf7 50%, #6090ff 100%);
+
+    /* Gradient animations */
+    .hero-gradient {
+      background: linear-gradient(135deg, #4263eb 0%, #5c7cfa 30%, #748ffc 60%, #91a7ff 100%);
     }
-    
-    .gradient-accent {
-      background: linear-gradient(135deg, #e85d35 0%, #f4a88e 100%);
+    .hero-gradient::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%);
     }
-    
-    .glass-card {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    
+
+    /* Feature card hover */
     .feature-card {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .feature-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 25px 60px -12px rgba(59, 108, 247, 0.25);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(66, 99, 235, 0.15);
     }
-    
+
+    /* Pricing card */
     .pricing-card {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
     }
     .pricing-card:hover {
       transform: translateY(-4px);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.1);
     }
     .pricing-card.popular {
-      border: 2px solid #3b6cf7;
-      box-shadow: 0 20px 60px -12px rgba(59, 108, 247, 0.3);
+      border: 2px solid #4c6ef5;
+      position: relative;
     }
-    
-    .blob-1 {
-      position: absolute;
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(232,93,53,0.15) 0%, transparent 70%);
-      border-radius: 50%;
-      filter: blur(60px);
-      animation: float 8s ease-in-out infinite;
+
+    /* Animate on scroll */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .blob-2 {
-      position: absolute;
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(59,108,247,0.12) 0%, transparent 70%);
-      border-radius: 50%;
-      filter: blur(50px);
-      animation: float 10s ease-in-out infinite reverse;
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
-    
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(30px, -30px) scale(1.05); }
-      66% { transform: translate(-20px, 20px) scale(0.95); }
+
+    /* FAQ accordion */
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s ease;
     }
-    
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
+    .faq-answer.open {
+      max-height: 500px;
+      padding-bottom: 1rem;
     }
-    .animate-fade-in { animation: fadeInUp 0.6s ease-out forwards; }
-    .animate-delay-100 { animation-delay: 0.1s; opacity: 0; }
-    .animate-delay-200 { animation-delay: 0.2s; opacity: 0; }
-    .animate-delay-300 { animation-delay: 0.3s; opacity: 0; }
-    .animate-delay-400 { animation-delay: 0.4s; opacity: 0; }
-    
-    .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; }
-    .faq-answer.open { max-height: 500px; }
-    
-    .toggle-bg { transition: background-color 0.3s ease; }
-    .toggle-dot { transition: transform 0.3s ease; }
-    
-    .nav-link { position: relative; }
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      bottom: -2px; left: 0;
-      width: 0; height: 2px;
-      background: #e85d35;
-      transition: width 0.3s ease;
-    }
-    .nav-link:hover::after { width: 100%; }
-    
-    .stat-number {
-      background: linear-gradient(135deg, #3b6cf7, #e85d35);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .mobile-menu {
-      transform: translateX(100%);
+    .faq-chevron {
       transition: transform 0.3s ease;
     }
+    .faq-chevron.rotated {
+      transform: rotate(180deg);
+    }
+
+    /* Pricing toggle */
+    .toggle-bg { transition: background-color 0.3s ease; }
+    .toggle-dot { transition: transform 0.3s ease; }
+
+    /* Mobile menu */
+    .mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
     .mobile-menu.open {
-      transform: translateX(0);
+      max-height: 400px;
+    }
+
+    /* Floating shapes */
+    .float-shape {
+      animation: floatUp 6s ease-in-out infinite;
+    }
+    .float-shape:nth-child(2) { animation-delay: -2s; }
+    .float-shape:nth-child(3) { animation-delay: -4s; }
+    @keyframes floatUp {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    /* Counter animation */
+    .stat-number {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Step connector */
+    .step-connector::after {
+      content: '';
+      position: absolute;
+      top: 24px;
+      left: 48px;
+      right: -100%;
+      height: 2px;
+      background: linear-gradient(90deg, #4c6ef5, #bac8ff);
+    }
+
+    /* Testimonial card */
+    .testimonial-card {
+      transition: transform 0.3s ease;
+    }
+    .testimonial-card:hover {
+      transform: scale(1.02);
     }
   </style>
 </head>
-<body class="bg-white text-gray-800 antialiased">
+<body class="bg-white text-gray-800 overflow-x-hidden">
 
-  <!-- ========== HEADER ========== -->
-  <header id="header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16 lg:h-20">
+  <!-- ==================== HEADER ==================== -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16 md:h-18">
         <!-- Logo -->
-        <a href="#" class="flex items-center gap-2 group">
-          <div class="w-9 h-9 rounded-xl gradient-accent flex items-center justify-center">
+        <a href="#" class="flex items-center gap-2">
+          <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center">
             <i class="fas fa-scissors text-white text-sm"></i>
           </div>
-          <span class="text-xl font-bold text-gray-900 group-hover:text-brand-600 transition-colors">
-            Shtro<span class="text-accent-500">CRM</span>
-          </span>
+          <span class="text-xl font-bold text-gray-900">Штор<span class="text-brand-600">CRM</span></span>
         </a>
 
         <!-- Desktop Nav -->
-        <nav class="hidden lg:flex items-center gap-8">
-          <a href="#features" class="nav-link text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Возможности</a>
-          <a href="#how-it-works" class="nav-link text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Как это работает</a>
-          <a href="#pricing" class="nav-link text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Тарифы</a>
-          <a href="#reviews" class="nav-link text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Отзывы</a>
-          <a href="#faq" class="nav-link text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">FAQ</a>
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="#features" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">Возможности</a>
+          <a href="#pricing" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">Тарифы</a>
+          <a href="#reviews" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">Отзывы</a>
+          <a href="#faq" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">Вопросы</a>
         </nav>
 
-        <!-- CTA Buttons -->
-        <div class="hidden lg:flex items-center gap-3">
-          <button class="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 transition-colors">Войти</button>
-          <button class="text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 px-5 py-2.5 rounded-xl transition-all hover:shadow-lg hover:shadow-brand-600/25">
-            Попробовать бесплатно
+        <!-- CTA + Mobile toggle -->
+        <div class="flex items-center gap-3">
+          <a href="#pricing" class="hidden md:inline-flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl hover:bg-brand-700 transition-colors shadow-md shadow-brand-600/20">
+            Начать бесплатно
+          </a>
+          <button id="mobileMenuBtn" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+            <i class="fas fa-bars text-gray-600 text-lg"></i>
           </button>
         </div>
+      </div>
 
-        <!-- Mobile Burger -->
-        <button id="burger-btn" class="lg:hidden p-2 text-gray-600 hover:text-gray-900">
-          <i class="fas fa-bars text-xl"></i>
-        </button>
+      <!-- Mobile Menu -->
+      <div id="mobileMenu" class="mobile-menu md:hidden">
+        <nav class="py-4 space-y-1 border-t border-gray-100">
+          <a href="#features" class="block px-4 py-2.5 text-gray-700 hover:bg-brand-50 rounded-lg transition-colors font-medium">Возможности</a>
+          <a href="#pricing" class="block px-4 py-2.5 text-gray-700 hover:bg-brand-50 rounded-lg transition-colors font-medium">Тарифы</a>
+          <a href="#reviews" class="block px-4 py-2.5 text-gray-700 hover:bg-brand-50 rounded-lg transition-colors font-medium">Отзывы</a>
+          <a href="#faq" class="block px-4 py-2.5 text-gray-700 hover:bg-brand-50 rounded-lg transition-colors font-medium">Вопросы</a>
+          <a href="#pricing" class="block mx-4 mt-3 px-4 py-2.5 bg-brand-600 text-white text-center rounded-xl font-semibold">Начать бесплатно</a>
+        </nav>
       </div>
     </div>
   </header>
 
-  <!-- Mobile Menu -->
-  <div id="mobile-menu" class="mobile-menu fixed inset-y-0 right-0 w-80 bg-white shadow-2xl z-[60] p-6">
-    <div class="flex justify-end mb-8">
-      <button id="close-menu-btn" class="p-2 text-gray-400 hover:text-gray-900">
-        <i class="fas fa-xmark text-2xl"></i>
-      </button>
+  <!-- ==================== HERO ==================== -->
+  <section class="hero-gradient relative pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden">
+    <!-- Floating shapes -->
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="float-shape absolute top-20 left-[10%] w-20 h-20 bg-white/5 rounded-2xl rotate-12"></div>
+      <div class="float-shape absolute top-40 right-[15%] w-16 h-16 bg-white/5 rounded-full"></div>
+      <div class="float-shape absolute bottom-20 left-[25%] w-24 h-24 bg-white/5 rounded-3xl -rotate-6"></div>
+      <div class="float-shape absolute bottom-32 right-[10%] w-12 h-12 bg-white/5 rounded-xl rotate-45"></div>
     </div>
-    <nav class="flex flex-col gap-4">
-      <a href="#features" class="mobile-link text-lg font-medium text-gray-700 hover:text-brand-600 py-2 border-b border-gray-100">Возможности</a>
-      <a href="#how-it-works" class="mobile-link text-lg font-medium text-gray-700 hover:text-brand-600 py-2 border-b border-gray-100">Как это работает</a>
-      <a href="#pricing" class="mobile-link text-lg font-medium text-gray-700 hover:text-brand-600 py-2 border-b border-gray-100">Тарифы</a>
-      <a href="#reviews" class="mobile-link text-lg font-medium text-gray-700 hover:text-brand-600 py-2 border-b border-gray-100">Отзывы</a>
-      <a href="#faq" class="mobile-link text-lg font-medium text-gray-700 hover:text-brand-600 py-2 border-b border-gray-100">FAQ</a>
-      <button class="mt-6 w-full text-center font-semibold text-white bg-brand-600 hover:bg-brand-700 px-5 py-3 rounded-xl transition-all">
-        Попробовать бесплатно
-      </button>
-    </nav>
-  </div>
-  <div id="menu-overlay" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
 
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+        <!-- Left content -->
+        <div class="flex-1 text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/15 rounded-full text-white/90 text-sm font-medium mb-6 backdrop-blur-sm">
+            <i class="fas fa-sparkles text-accent-400"></i>
+            Уже готов к работе
+          </div>
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+            CRM и Учёт<br>
+            <span class="text-white/80">для салонов штор</span>
+          </h1>
+          <p class="text-lg sm:text-xl text-white/75 max-w-xl mb-8 leading-relaxed">
+            Сервис для ведения проектов и управленческого учёта. Ведите клиентов, считайте деньги и управляйте бизнесом в одном месте.
+          </p>
+          <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+            <a href="#pricing" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-brand-700 font-bold rounded-2xl hover:bg-brand-50 transition-all shadow-xl shadow-black/10 text-lg">
+              <span>Зарегистрироваться</span>
+              <i class="fas fa-arrow-right text-sm"></i>
+            </a>
+            <a href="#features" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-2xl hover:bg-white/10 transition-all">
+              Узнать больше
+            </a>
+          </div>
+          <div class="flex items-center justify-center lg:justify-start gap-6 mt-8 text-white/60 text-sm">
+            <span><i class="fas fa-check text-accent-400 mr-1.5"></i>14 дней бесплатно</span>
+            <span><i class="fas fa-check text-accent-400 mr-1.5"></i>Без карты</span>
+            <span><i class="fas fa-check text-accent-400 mr-1.5"></i>Поддержка 24/7</span>
+          </div>
+        </div>
 
-  <!-- ========== HERO ========== -->
-  <section class="gradient-hero relative overflow-hidden pt-28 pb-20 lg:pt-40 lg:pb-32">
-    <div class="blob-1" style="top: -100px; right: -200px;"></div>
-    <div class="blob-2" style="bottom: -150px; left: -100px;"></div>
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <div class="max-w-3xl mx-auto text-center">
-        <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-6 animate-fade-in">
-          <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-          <span class="text-white/90 text-sm font-medium">Уже готов к работе</span>
-        </div>
-        
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6 animate-fade-in animate-delay-100">
-          CRM и Учёт<br>
-          <span class="text-accent-300">для салонов штор</span>
-        </h1>
-        
-        <p class="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-10 animate-fade-in animate-delay-200">
-          Сервис для ведения проектов и управленческого учёта. 
-          Когда ваше текстильное хобби превращается в бизнес.
-        </p>
-        
-        <div class="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in animate-delay-300">
-          <button class="inline-flex items-center justify-center gap-2 bg-white text-brand-700 font-bold px-8 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl text-lg">
-            <i class="fas fa-rocket"></i>
-            Зарегистрироваться
-          </button>
-          <button class="inline-flex items-center justify-center gap-2 glass-card text-white font-semibold px-8 py-4 rounded-2xl hover:bg-white/15 transition-all text-lg">
-            <i class="fas fa-play-circle"></i>
-            Смотреть демо
-          </button>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-16 max-w-4xl mx-auto animate-fade-in animate-delay-400">
-        <div class="glass-card rounded-2xl p-5 text-center">
-          <div class="text-3xl font-extrabold text-white mb-1">500+</div>
-          <div class="text-sm text-white/70">Салонов штор</div>
-        </div>
-        <div class="glass-card rounded-2xl p-5 text-center">
-          <div class="text-3xl font-extrabold text-white mb-1">4</div>
-          <div class="text-sm text-white/70">Страны</div>
-        </div>
-        <div class="glass-card rounded-2xl p-5 text-center">
-          <div class="text-3xl font-extrabold text-white mb-1">50+</div>
-          <div class="text-sm text-white/70">Поставщиков</div>
-        </div>
-        <div class="glass-card rounded-2xl p-5 text-center">
-          <div class="text-3xl font-extrabold text-white mb-1">14</div>
-          <div class="text-sm text-white/70">Дней бесплатно</div>
+        <!-- Right illustration -->
+        <div class="flex-1 max-w-lg">
+          <div class="relative">
+            <!-- Dashboard mockup -->
+            <div class="bg-white rounded-2xl shadow-2xl p-5 transform rotate-1">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                <div class="text-xs text-gray-400 ml-2">ШторCRM — Дашборд</div>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-brand-50 rounded-xl">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
+                      <i class="fas fa-chart-line text-white text-xs"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs font-semibold text-gray-800">Выручка за месяц</div>
+                      <div class="text-[10px] text-gray-500">+23% к прошлому</div>
+                    </div>
+                  </div>
+                  <div class="text-lg font-bold text-brand-700">₽847K</div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="p-2.5 bg-emerald-50 rounded-xl text-center">
+                    <div class="text-lg font-bold text-emerald-600">12</div>
+                    <div class="text-[10px] text-gray-500">Проектов</div>
+                  </div>
+                  <div class="p-2.5 bg-amber-50 rounded-xl text-center">
+                    <div class="text-lg font-bold text-amber-600">5</div>
+                    <div class="text-[10px] text-gray-500">В работе</div>
+                  </div>
+                  <div class="p-2.5 bg-blue-50 rounded-xl text-center">
+                    <div class="text-lg font-bold text-blue-600">28</div>
+                    <div class="text-[10px] text-gray-500">Клиентов</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+                  <div class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-purple-500 text-[10px]"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-xs font-medium">Иванова Мария — Спальня</div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                      <div class="bg-brand-500 h-1.5 rounded-full" style="width: 70%"></div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-medium text-brand-600">70%</span>
+                </div>
+                <div class="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+                  <div class="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-pink-500 text-[10px]"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-xs font-medium">Петров А.С. — Гостиная</div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                      <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 100%"></div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-medium text-emerald-600">Готов</span>
+                </div>
+              </div>
+            </div>
+            <!-- Floating notification card -->
+            <div class="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-3 flex items-center gap-3 transform -rotate-2 z-10">
+              <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-gray-800">Заказ завершён!</div>
+                <div class="text-[10px] text-gray-500">Петров А.С. — ₽126 800</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-
-  <!-- ========== QUICK FEATURES (4 cards) ========== -->
-  <section class="py-16 lg:py-24 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <div class="feature-card bg-white rounded-2xl p-6 shadow-sm">
-          <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mb-4">
-            <i class="fab fa-telegram text-blue-600 text-xl"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-2">Мессенджеры</h3>
-          <p class="text-sm text-gray-500 leading-relaxed">Пишите клиенту в Telegram, WhatsApp и Instagram прямо из CRM</p>
+  <!-- ==================== STATS BAR ==================== -->
+  <section class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div class="text-center fade-up">
+          <div class="stat-number text-3xl md:text-4xl font-extrabold text-brand-600">500+</div>
+          <div class="text-sm text-gray-500 mt-1">Салонов</div>
         </div>
-
-        <div class="feature-card bg-white rounded-2xl p-6 shadow-sm">
-          <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mb-4">
-            <i class="fas fa-file-import text-green-600 text-xl"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-2">Заявки с сайта</h3>
-          <p class="text-sm text-gray-500 leading-relaxed">Подключите форму к сайту — заявки сразу прилетят в систему</p>
+        <div class="text-center fade-up">
+          <div class="stat-number text-3xl md:text-4xl font-extrabold text-brand-600">15K+</div>
+          <div class="text-sm text-gray-500 mt-1">Проектов</div>
         </div>
-
-        <div class="feature-card bg-white rounded-2xl p-6 shadow-sm">
-          <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mb-4">
-            <i class="fas fa-file-invoice text-purple-600 text-xl"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-2">Выгрузка в 1С</h3>
-          <p class="text-sm text-gray-500 leading-relaxed">Выгружайте документы в 1С или предоставьте доступ бухгалтеру</p>
+        <div class="text-center fade-up">
+          <div class="stat-number text-3xl md:text-4xl font-extrabold text-brand-600">4</div>
+          <div class="text-sm text-gray-500 mt-1">Страны</div>
         </div>
-
-        <div class="feature-card bg-white rounded-2xl p-6 shadow-sm">
-          <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center mb-4">
-            <i class="fas fa-cash-register text-orange-600 text-xl"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-2">Кассовые чеки</h3>
-          <p class="text-sm text-gray-500 leading-relaxed">Свяжите свою кассу и печатайте чеки прямо из сервиса</p>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ========== FEATURES DETAILED ========== -->
-  <section id="features" class="py-16 lg:py-28 relative overflow-hidden">
-    <div class="blob-2" style="top: 100px; right: -250px; opacity: 0.5;"></div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      
-      <div class="text-center mb-16">
-        <div class="inline-flex items-center gap-2 bg-brand-50 rounded-full px-4 py-1.5 mb-4">
-          <i class="fas fa-sparkles text-brand-600 text-xs"></i>
-          <span class="text-brand-600 text-sm font-semibold">Возможности сервиса</span>
-        </div>
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-          Всё, что нужно вашему бизнесу
-        </h2>
-        <p class="text-lg text-gray-500 max-w-2xl mx-auto">
-          От управления клиентами до финансового учёта — всё в одном месте
-        </p>
-      </div>
-
-      <!-- Feature Block 1 -->
-      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-20 lg:mb-32">
-        <div>
-          <div class="w-14 h-14 rounded-2xl bg-brand-100 flex items-center justify-center mb-6">
-            <i class="fas fa-users text-brand-600 text-2xl"></i>
-          </div>
-          <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Лучше продавать и обслуживать клиентов</h3>
-          <p class="text-gray-500 mb-6 leading-relaxed">Ведите клиента от первого контакта до завершения проекта. Воронка продаж, календарь задач и контроль статуса заказов.</p>
-          <ul class="space-y-3">
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Готовая воронка продаж</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Задачи и календарь с уведомлениями</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Контроль статуса заказов в швейном цехе</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Онлайн-портфолио завершённых проектов</span></li>
-          </ul>
-        </div>
-        <div class="bg-gradient-to-br from-brand-50 to-blue-50 rounded-3xl p-8 lg:p-12 flex items-center justify-center min-h-[300px]">
-          <div class="text-center">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-brand-600 mb-4 shadow-lg shadow-brand-600/30">
-              <i class="fas fa-chart-line text-white text-3xl"></i>
-            </div>
-            <p class="font-semibold text-brand-700 text-lg">Воронка продаж</p>
-            <p class="text-brand-500 text-sm mt-1">Ведём клиента до продажи</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature Block 2 -->
-      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-20 lg:mb-32">
-        <div class="order-2 lg:order-1 bg-gradient-to-br from-orange-50 to-red-50 rounded-3xl p-8 lg:p-12 flex items-center justify-center min-h-[300px]">
-          <div class="text-center">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-accent-500 mb-4 shadow-lg shadow-accent-500/30">
-              <i class="fas fa-truck text-white text-3xl"></i>
-            </div>
-            <p class="font-semibold text-accent-700 text-lg">Работа с поставщиками</p>
-            <p class="text-accent-500 text-sm mt-1">Заказ в пару кликов</p>
-          </div>
-        </div>
-        <div class="order-1 lg:order-2">
-          <div class="w-14 h-14 rounded-2xl bg-accent-100 flex items-center justify-center mb-6">
-            <i class="fas fa-boxes-stacked text-accent-600 text-2xl"></i>
-          </div>
-          <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Быстро работать с поставщиками</h3>
-          <p class="text-gray-500 mb-6 leading-relaxed">Прайс-листы уже загружены. Делайте заказ онлайн, проверяйте наличие ткани и общайтесь с поставщиками в чате.</p>
-          <ul class="space-y-3">
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Прайс-листы поставщиков уже загружены</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Онлайн-заказ и получение счёта на оплату</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Проверка наличия ткани онлайн</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Чат с поставщиками по заказу</span></li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Feature Block 3 -->
-      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-20 lg:mb-32">
-        <div>
-          <div class="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mb-6">
-            <i class="fas fa-chart-pie text-emerald-600 text-2xl"></i>
-          </div>
-          <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Видеть как идут дела</h3>
-          <p class="text-gray-500 mb-6 leading-relaxed">Дашборд с полной картиной: прогресс проектов, доходы, лучшие услуги и эффективные дизайнеры.</p>
-          <ul class="space-y-3">
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Дашборд по всем проектам</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Аналитика по доходам</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Рейтинг услуг по прибыльности</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Эффективность дизайнеров</span></li>
-          </ul>
-        </div>
-        <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 lg:p-12 flex items-center justify-center min-h-[300px]">
-          <div class="text-center">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-emerald-600 mb-4 shadow-lg shadow-emerald-600/30">
-              <i class="fas fa-gauge-high text-white text-3xl"></i>
-            </div>
-            <p class="font-semibold text-emerald-700 text-lg">Дашборд</p>
-            <p class="text-emerald-500 text-sm mt-1">Полная картина бизнеса</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature Block 4 -->
-      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-        <div class="order-2 lg:order-1 bg-gradient-to-br from-violet-50 to-purple-50 rounded-3xl p-8 lg:p-12 flex items-center justify-center min-h-[300px]">
-          <div class="text-center">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-violet-600 mb-4 shadow-lg shadow-violet-600/30">
-              <i class="fas fa-wallet text-white text-3xl"></i>
-            </div>
-            <p class="font-semibold text-violet-700 text-lg">Финансы</p>
-            <p class="text-violet-500 text-sm mt-1">Считаем каждый рубль</p>
-          </div>
-        </div>
-        <div class="order-1 lg:order-2">
-          <div class="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mb-6">
-            <i class="fas fa-ruble-sign text-violet-600 text-2xl"></i>
-          </div>
-          <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Считать деньги и планировать расходы</h3>
-          <p class="text-gray-500 mb-6 leading-relaxed">Контролируйте все кассы, платежи, взаиморасчёты с поставщиками и зарплаты сотрудников.</p>
-          <ul class="space-y-3">
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Баланс по всем кассам</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">График платежей и поступлений</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Взаиморасчёты с поставщиками</span></li>
-            <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></span><span class="text-gray-700">Расчёт зарплат сотрудникам</span></li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-
-  <!-- ========== HOW IT WORKS ========== -->
-  <section id="how-it-works" class="py-16 lg:py-28 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <div class="inline-flex items-center gap-2 bg-accent-50 rounded-full px-4 py-1.5 mb-4">
-          <i class="fas fa-route text-accent-600 text-xs"></i>
-          <span class="text-accent-600 text-sm font-semibold">Начать легко</span>
-        </div>
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-          Что будет после регистрации
-        </h2>
-        <p class="text-lg text-gray-500 max-w-2xl mx-auto">4 простых шага — и вы уже работаете</p>
-      </div>
-
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-        <div class="relative bg-white rounded-2xl p-6 shadow-sm">
-          <div class="absolute -top-3 -left-3 w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold text-sm shadow-lg">1</div>
-          <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4 mt-2">
-            <i class="fas fa-building text-brand-600 text-xl"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-2">Заполнение реквизитов</h3>
-          <p class="text-sm text-gray-500">Чтобы мы поняли ваш статус и помогли настроить сервис</p>
-        </div>
-
-        <div class="relative bg-white rounded-2xl p-6 shadow-sm">
-          <div class="absolute -top-3 -left-3 w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold text-sm shadow-lg">2</div>
-          <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4 mt-2">
-            <i class="fas fa-headset text-brand-600 text-xl"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-2">Созвон с куратором</h3>
-          <p class="text-sm text-gray-500">Запускаем систему и отвечаем на все вопросы</p>
-        </div>
-
-        <div class="relative bg-white rounded-2xl p-6 shadow-sm">
-          <div class="absolute -top-3 -left-3 w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold text-sm shadow-lg">3</div>
-          <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4 mt-2">
-            <i class="fas fa-flask text-brand-600 text-xl"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-2">Тестовый период</h3>
-          <p class="text-sm text-gray-500">14 дней — попробуйте без спешки и решите, подходит ли сервис</p>
-        </div>
-
-        <div class="relative bg-white rounded-2xl p-6 shadow-sm">
-          <div class="absolute -top-3 -left-3 w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-extrabold text-sm shadow-lg">4</div>
-          <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4 mt-2">
-            <i class="fas fa-graduation-cap text-brand-600 text-xl"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-2">Поддержка куратора</h3>
-          <p class="text-sm text-gray-500">Обучение, ответы на вопросы и настройка под ваши нужды</p>
+        <div class="text-center fade-up">
+          <div class="stat-number text-3xl md:text-4xl font-extrabold text-brand-600">98%</div>
+          <div class="text-sm text-gray-500 mt-1">Довольных клиентов</div>
         </div>
       </div>
     </div>
   </section>
 
-
-  <!-- ========== PRICING ========== -->
-  <section id="pricing" class="py-16 lg:py-28">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <div class="inline-flex items-center gap-2 bg-emerald-50 rounded-full px-4 py-1.5 mb-4">
-          <i class="fas fa-tag text-emerald-600 text-xs"></i>
-          <span class="text-emerald-600 text-sm font-semibold">Тарифы</span>
+  <!-- ==================== INTEGRATIONS ==================== -->
+  <section class="bg-gray-50 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 fade-up">
+        <div class="flex items-center gap-4 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <i class="fab fa-instagram text-white text-xl"></i>
+          </div>
+          <div>
+            <div class="font-semibold text-sm text-gray-800">Instagram</div>
+            <div class="text-xs text-gray-500">Лиды из соцсетей</div>
+          </div>
         </div>
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-          Выберите свой тариф
-        </h2>
-        <p class="text-lg text-gray-500 max-w-2xl mx-auto mb-8">
-          На всех тарифах действует пробный период 14 дней
-        </p>
+        <div class="flex items-center gap-4 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <i class="fab fa-whatsapp text-white text-xl"></i>
+          </div>
+          <div>
+            <div class="font-semibold text-sm text-gray-800">WhatsApp</div>
+            <div class="text-xs text-gray-500">Чат с клиентами</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <i class="fab fa-telegram text-white text-xl"></i>
+          </div>
+          <div>
+            <div class="font-semibold text-sm text-gray-800">Telegram</div>
+            <div class="text-xs text-gray-500">Уведомления</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-file-invoice text-white text-xl"></i>
+          </div>
+          <div>
+            <div class="font-semibold text-sm text-gray-800">1С</div>
+            <div class="text-xs text-gray-500">Выгрузка документов</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FEATURES ==================== -->
+  <section id="features" class="py-20 md:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-16 fade-up">
+        <span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-600 rounded-full text-sm font-semibold mb-4">Возможности</span>
+        <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">Всё, что нужно вашему<br class="hidden sm:block"> салону штор</h2>
+        <p class="text-lg text-gray-500 max-w-2xl mx-auto">Управляйте продажами, поставщиками, финансами и командой — всё в одном сервисе, созданном специально для вашего бизнеса</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Feature 1: Sales -->
+        <div class="feature-card bg-gradient-to-br from-brand-50 to-white rounded-3xl p-8 border border-brand-100/50 fade-up">
+          <div class="w-14 h-14 bg-brand-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-brand-600/20">
+            <i class="fas fa-handshake text-white text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Продажи и клиенты</h3>
+          <p class="text-gray-500 mb-5 leading-relaxed">Ведите клиента от первого контакта до завершения проекта с помощью готовой воронки продаж</p>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-brand-500 mt-0.5"></i><span class="text-sm text-gray-700">Готовая воронка продаж</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-brand-500 mt-0.5"></i><span class="text-sm text-gray-700">Задачи и календарь с уведомлениями</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-brand-500 mt-0.5"></i><span class="text-sm text-gray-700">Контроль заказов в швейном цехе</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-brand-500 mt-0.5"></i><span class="text-sm text-gray-700">Онлайн-портфолио проектов</span></li>
+          </ul>
+        </div>
+
+        <!-- Feature 2: Suppliers -->
+        <div class="feature-card bg-gradient-to-br from-emerald-50 to-white rounded-3xl p-8 border border-emerald-100/50 fade-up">
+          <div class="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-600/20">
+            <i class="fas fa-truck text-white text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Работа с поставщиками</h3>
+          <p class="text-gray-500 mb-5 leading-relaxed">Все прайс-листы уже загружены, заказы можно оформлять онлайн</p>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-emerald-500 mt-0.5"></i><span class="text-sm text-gray-700">Прайс-листы поставщиков загружены</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-emerald-500 mt-0.5"></i><span class="text-sm text-gray-700">Онлайн-заказ и счёт на оплату</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-emerald-500 mt-0.5"></i><span class="text-sm text-gray-700">Проверка наличия ткани онлайн</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-emerald-500 mt-0.5"></i><span class="text-sm text-gray-700">Чат с поставщиками по заказу</span></li>
+          </ul>
+        </div>
+
+        <!-- Feature 3: Analytics -->
+        <div class="feature-card bg-gradient-to-br from-amber-50 to-white rounded-3xl p-8 border border-amber-100/50 fade-up">
+          <div class="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-amber-500/20">
+            <i class="fas fa-chart-pie text-white text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Аналитика и дашборд</h3>
+          <p class="text-gray-500 mb-5 leading-relaxed">Видьте как идут дела по всем проектам, доходы и эффективность команды</p>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-amber-500 mt-0.5"></i><span class="text-sm text-gray-700">Дашборд состояния проектов</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-amber-500 mt-0.5"></i><span class="text-sm text-gray-700">Отчёт по выручке и прибыли</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-amber-500 mt-0.5"></i><span class="text-sm text-gray-700">Рентабельность услуг</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-amber-500 mt-0.5"></i><span class="text-sm text-gray-700">Рейтинг дизайнеров по продажам</span></li>
+          </ul>
+        </div>
+
+        <!-- Feature 4: Finance -->
+        <div class="feature-card bg-gradient-to-br from-purple-50 to-white rounded-3xl p-8 border border-purple-100/50 fade-up">
+          <div class="w-14 h-14 bg-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-600/20">
+            <i class="fas fa-coins text-white text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Финансы и учёт</h3>
+          <p class="text-gray-500 mb-5 leading-relaxed">Полный контроль денежных потоков: кассы, взаиморасчёты, зарплаты</p>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-purple-500 mt-0.5"></i><span class="text-sm text-gray-700">Учёт касс и остатков</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-purple-500 mt-0.5"></i><span class="text-sm text-gray-700">Планирование платежей</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-purple-500 mt-0.5"></i><span class="text-sm text-gray-700">Взаиморасчёты с поставщиками</span></li>
+            <li class="flex items-start gap-3"><i class="fas fa-check-circle text-purple-500 mt-0.5"></i><span class="text-sm text-gray-700">Расчёт зарплат сотрудникам</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== HOW IT WORKS ==================== -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-16 fade-up">
+        <span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-600 rounded-full text-sm font-semibold mb-4">Начало работы</span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Что будет после регистрации</h2>
+        <p class="text-lg text-gray-500">Четыре простых шага до запуска вашего салона в CRM</p>
+      </div>
+
+      <div class="grid md:grid-cols-4 gap-8">
+        <div class="text-center fade-up">
+          <div class="relative inline-flex mx-auto">
+            <div class="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-brand-600/20">1</div>
+          </div>
+          <h4 class="font-bold text-gray-900 mt-5 mb-2">Регистрация</h4>
+          <p class="text-sm text-gray-500 leading-relaxed">Заполните реквизиты, чтобы мы поняли ваш бизнес</p>
+        </div>
+        <div class="text-center fade-up">
+          <div class="relative inline-flex mx-auto">
+            <div class="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-brand-600/20">2</div>
+          </div>
+          <h4 class="font-bold text-gray-900 mt-5 mb-2">Созвон с куратором</h4>
+          <p class="text-sm text-gray-500 leading-relaxed">Запустим систему и ответим на ваши вопросы</p>
+        </div>
+        <div class="text-center fade-up">
+          <div class="relative inline-flex mx-auto">
+            <div class="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-brand-600/20">3</div>
+          </div>
+          <h4 class="font-bold text-gray-900 mt-5 mb-2">Тестовый период</h4>
+          <p class="text-sm text-gray-500 leading-relaxed">14 дней бесплатно, чтобы всё попробовать без спешки</p>
+        </div>
+        <div class="text-center fade-up">
+          <div class="relative inline-flex mx-auto">
+            <div class="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-brand-600/20">4</div>
+          </div>
+          <h4 class="font-bold text-gray-900 mt-5 mb-2">Поддержка</h4>
+          <p class="text-sm text-gray-500 leading-relaxed">Обучение сотрудников и настройка под ваши нужды</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== PRICING ==================== -->
+  <section id="pricing" class="py-20 md:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 fade-up">
+        <span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-600 rounded-full text-sm font-semibold mb-4">Тарифы</span>
+        <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">Выберите свой тариф</h2>
+        <p class="text-lg text-gray-500 mb-8">На всех тарифах действует пробный период 14 дней</p>
 
         <!-- Toggle -->
-        <div class="inline-flex items-center gap-3 bg-gray-100 rounded-full p-1.5">
-          <button id="btn-12m" class="pricing-toggle-btn px-5 py-2 rounded-full text-sm font-semibold transition-all bg-brand-600 text-white shadow-md" data-period="12">
-            12 месяцев <span class="text-xs ml-1 opacity-80">-25%</span>
+        <div class="inline-flex items-center gap-4 bg-gray-100 rounded-full p-1.5">
+          <button id="toggle12" class="px-6 py-2.5 rounded-full text-sm font-semibold transition-all bg-brand-600 text-white shadow-md" onclick="togglePricing(12)">
+            12 месяцев <span class="text-xs opacity-75">выгодно</span>
           </button>
-          <button id="btn-6m" class="pricing-toggle-btn px-5 py-2 rounded-full text-sm font-semibold transition-all text-gray-600 hover:text-gray-900" data-period="6">
+          <button id="toggle6" class="px-6 py-2.5 rounded-full text-sm font-semibold transition-all text-gray-600 hover:text-gray-800" onclick="togglePricing(6)">
             6 месяцев
           </button>
         </div>
       </div>
 
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8" id="pricing-grid">
-        
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 fade-up">
         <!-- Дизайнер -->
-        <div class="pricing-card bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+        <div class="pricing-card bg-white rounded-3xl border border-gray-200 p-7">
           <div class="mb-6">
             <h3 class="text-lg font-bold text-gray-900">Дизайнер</h3>
             <p class="text-sm text-gray-500 mt-1">Для одного дизайнера</p>
           </div>
           <div class="mb-6">
-            <span class="price-value text-4xl font-extrabold text-gray-900" data-price-12="1 650" data-price-6="1 650">1 650</span>
-            <span class="text-gray-500 text-sm"> руб/мес</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-extrabold text-gray-900 price-value" data-price-12="1 650" data-price-6="1 990">1 650</span>
+              <span class="text-gray-500">₽/мес</span>
+            </div>
           </div>
           <ul class="space-y-3 mb-8">
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Полный функционал</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Онлайн поддержка</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Видеоуроки</li>
-            <li class="flex items-center gap-2 text-sm text-gray-400"><i class="fas fa-xmark"></i>Сотрудники</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>1 дизайнер</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>Полный функционал</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>Онлайн-поддержка</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>Видеоуроки</li>
           </ul>
-          <button class="w-full py-3 rounded-xl border-2 border-brand-600 text-brand-600 font-semibold hover:bg-brand-600 hover:text-white transition-all">
-            Выбрать
-          </button>
+          <button class="w-full py-3 bg-gray-100 text-gray-800 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Выбрать</button>
         </div>
 
         <!-- Базовый -->
-        <div class="pricing-card bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+        <div class="pricing-card bg-white rounded-3xl border border-gray-200 p-7">
           <div class="mb-6">
             <h3 class="text-lg font-bold text-gray-900">Базовый</h3>
-            <p class="text-sm text-gray-500 mt-1">1 салон, 2 сотрудника</p>
+            <p class="text-sm text-gray-500 mt-1">Для небольшого салона</p>
           </div>
           <div class="mb-6">
-            <span class="price-value text-4xl font-extrabold text-gray-900" data-price-12="2 200" data-price-6="2 750">2 200</span>
-            <span class="text-gray-500 text-sm"> руб/мес</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-extrabold text-gray-900 price-value" data-price-12="2 200" data-price-6="2 750">2 200</span>
+              <span class="text-gray-500">₽/мес</span>
+            </div>
           </div>
           <ul class="space-y-3 mb-8">
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>1 владелец + 1 салон</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>2 сотрудника</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Онлайн поддержка</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Видеоуроки</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>1 владелец</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>1 салон штор</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>2 сотрудника</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>Онлайн-поддержка</li>
           </ul>
-          <button class="w-full py-3 rounded-xl border-2 border-brand-600 text-brand-600 font-semibold hover:bg-brand-600 hover:text-white transition-all">
-            Выбрать
-          </button>
+          <button class="w-full py-3 bg-gray-100 text-gray-800 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Выбрать</button>
         </div>
 
         <!-- Продвинутый (Popular) -->
-        <div class="pricing-card popular bg-white rounded-2xl p-6 relative">
-          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-md">
-            Популярный
-          </div>
-          <div class="mb-6 mt-2">
-            <h3 class="text-lg font-bold text-gray-900">Продвинутый</h3>
-            <p class="text-sm text-gray-500 mt-1">1 салон, 4 сотрудника</p>
+        <div class="pricing-card popular bg-white rounded-3xl p-7">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="px-4 py-1 bg-brand-600 text-white text-xs font-bold rounded-full shadow-md">Популярный</span>
           </div>
           <div class="mb-6">
-            <span class="price-value text-4xl font-extrabold text-brand-600" data-price-12="2 695" data-price-6="3 850">2 695</span>
-            <span class="text-gray-500 text-sm"> руб/мес</span>
+            <h3 class="text-lg font-bold text-gray-900">Продвинутый</h3>
+            <p class="text-sm text-gray-500 mt-1">Для растущего бизнеса</p>
+          </div>
+          <div class="mb-6">
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-extrabold text-brand-600 price-value" data-price-12="2 695" data-price-6="3 850">2 695</span>
+              <span class="text-gray-500">₽/мес</span>
+            </div>
           </div>
           <ul class="space-y-3 mb-8">
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>1 владелец + 1 салон</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>4 сотрудника</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Онлайн поддержка</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Видеоуроки</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>1 владелец</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>1 салон штор</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>4 сотрудника</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>Онлайн-поддержка</li>
           </ul>
-          <button class="w-full py-3 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700 transition-all shadow-lg shadow-brand-600/25">
-            Выбрать
-          </button>
+          <button class="w-full py-3 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 transition-colors shadow-md shadow-brand-600/20">Выбрать</button>
         </div>
 
         <!-- Корпоративный -->
-        <div class="pricing-card bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+        <div class="pricing-card bg-white rounded-3xl border border-gray-200 p-7">
           <div class="mb-6">
             <h3 class="text-lg font-bold text-gray-900">Корпоративный</h3>
-            <p class="text-sm text-gray-500 mt-1">2 салона, 10 сотрудников</p>
+            <p class="text-sm text-gray-500 mt-1">Для крупного бизнеса</p>
           </div>
           <div class="mb-6">
-            <span class="price-value text-4xl font-extrabold text-gray-900" data-price-12="4 950" data-price-6="8 250">4 950</span>
-            <span class="text-gray-500 text-sm"> руб/мес</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-extrabold text-gray-900 price-value" data-price-12="4 950" data-price-6="8 250">4 950</span>
+              <span class="text-gray-500">₽/мес</span>
+            </div>
           </div>
           <ul class="space-y-3 mb-8">
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>1 владелец + 2 салона</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>10 сотрудников</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Поддержка по телефону</li>
-            <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-green-500"></i>Видеоуроки</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>1 владелец</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>2 салона штор</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>10 сотрудников</li>
+            <li class="flex items-center gap-2.5 text-sm text-gray-600"><i class="fas fa-check text-brand-500 text-xs"></i>Поддержка по телефону</li>
           </ul>
-          <button class="w-full py-3 rounded-xl border-2 border-brand-600 text-brand-600 font-semibold hover:bg-brand-600 hover:text-white transition-all">
-            Выбрать
-          </button>
+          <button class="w-full py-3 bg-gray-100 text-gray-800 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Выбрать</button>
         </div>
-
       </div>
     </div>
   </section>
 
-
-  <!-- ========== REVIEWS ========== -->
-  <section id="reviews" class="py-16 lg:py-28 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <div class="inline-flex items-center gap-2 bg-yellow-50 rounded-full px-4 py-1.5 mb-4">
-          <i class="fas fa-star text-yellow-500 text-xs"></i>
-          <span class="text-yellow-700 text-sm font-semibold">Отзывы</span>
-        </div>
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-          Что говорят клиенты
-        </h2>
+  <!-- ==================== REVIEWS ==================== -->
+  <section id="reviews" class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-16 fade-up">
+        <span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-600 rounded-full text-sm font-semibold mb-4">Отзывы</span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Что говорят наши клиенты</h2>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-        
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div class="flex gap-1 mb-4">
-            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+      <div class="grid md:grid-cols-3 gap-6 fade-up">
+        <div class="testimonial-card bg-white rounded-2xl p-7 shadow-sm">
+          <div class="flex items-center gap-1 mb-4">
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
           </div>
-          <p class="text-gray-600 mb-6 leading-relaxed">"Наконец-то CRM, которая понимает нашу специфику! Все процессы — от замера до монтажа — учтены. Раньше вели всё в Excel, теперь экономим 2 часа каждый день."</p>
+          <p class="text-gray-600 leading-relaxed mb-6">"Наконец-то сервис, который понимает специфику нашего бизнеса! Раньше мучились с универсальными CRM, теперь всё на своих местах. Рекомендую всем коллегам."</p>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center font-bold text-brand-600">ЛК</div>
+            <div class="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center">
+              <span class="text-brand-700 font-bold text-sm">ЛК</span>
+            </div>
             <div>
-              <div class="font-semibold text-gray-900 text-sm">Лариса Козлова</div>
+              <div class="font-semibold text-sm text-gray-900">Лариса Козлова</div>
               <div class="text-xs text-gray-500">Студия ДЕКОРА, г. Ижевск</div>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div class="flex gap-1 mb-4">
-            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+        <div class="testimonial-card bg-white rounded-2xl p-7 shadow-sm">
+          <div class="flex items-center gap-1 mb-4">
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
           </div>
-          <p class="text-gray-600 mb-6 leading-relaxed">"Особенно нравится интеграция с поставщиками — проверяю наличие ткани и оформляю заказ прямо из системы. Бухгалтер тоже счастлив — всё выгружается в 1С."</p>
+          <p class="text-gray-600 leading-relaxed mb-6">"Автоматический расчёт зарплат и взаиморасчётов с поставщиками — это просто спасение. Больше не нужно сидеть с калькулятором по вечерам."</p>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center font-bold text-accent-600">НК</div>
+            <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+              <span class="text-emerald-700 font-bold text-sm">НК</span>
+            </div>
             <div>
-              <div class="font-semibold text-gray-900 text-sm">Наталья Куляхтина</div>
-              <div class="text-xs text-gray-500">Салон штор «Антураж», г. Орск</div>
+              <div class="font-semibold text-sm text-gray-900">Наталья Куляхтина</div>
+              <div class="text-xs text-gray-500">Салон Антураж, г. Орск</div>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div class="flex gap-1 mb-4">
-            <i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i><i class="fas fa-star text-yellow-400"></i>
+        <div class="testimonial-card bg-white rounded-2xl p-7 shadow-sm">
+          <div class="flex items-center gap-1 mb-4">
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
+            <i class="fas fa-star text-amber-400"></i>
           </div>
-          <p class="text-gray-600 mb-6 leading-relaxed">"Мы работаем удалённо — дизайнеры в разных городах. Благодаря ShtroCRM вижу статус каждого проекта, загрузку сотрудников и финансы в реальном времени."</p>
+          <p class="text-gray-600 leading-relaxed mb-6">"Мы с мужем открыли мастерскую и сразу начали работать в ШторCRM. Удобно, что всё на одной платформе: и клиенты, и заказы, и финансы."</p>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-600">ЛБ</div>
+            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+              <span class="text-purple-700 font-bold text-sm">ДС</span>
+            </div>
             <div>
-              <div class="font-semibold text-gray-900 text-sm">Лилия Кузнецова</div>
-              <div class="text-xs text-gray-500">«Лучшее бюро текстиля», г. Саратов</div>
+              <div class="font-semibold text-sm text-gray-900">Денис и Светлана П.</div>
+              <div class="text-xs text-gray-500">Мастерская, г. Ангарск</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MOBILE APP ==================== -->
+  <section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+        <!-- Phone mockup -->
+        <div class="flex-1 flex justify-center fade-up">
+          <div class="relative">
+            <div class="w-64 h-[500px] bg-gray-900 rounded-[3rem] p-3 shadow-2xl">
+              <div class="w-full h-full bg-white rounded-[2.2rem] overflow-hidden">
+                <div class="bg-brand-600 px-5 pt-10 pb-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="text-white text-sm font-semibold">ШторCRM</div>
+                    <i class="fas fa-bell text-white/60 text-sm"></i>
+                  </div>
+                  <div class="text-white/60 text-xs">Выручка за месяц</div>
+                  <div class="text-white text-2xl font-bold mt-1">₽847 500</div>
+                </div>
+                <div class="px-4 pt-4 space-y-3">
+                  <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div class="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
+                      <i class="fas fa-scissors text-brand-600 text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-xs font-semibold">Новый заказ</div>
+                      <div class="text-[10px] text-gray-500">Петрова — Гостиная</div>
+                    </div>
+                    <span class="text-xs font-bold text-brand-600">₽89K</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <i class="fas fa-check text-emerald-600 text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-xs font-semibold">Монтаж завершён</div>
+                      <div class="text-[10px] text-gray-500">Сидоров — Детская</div>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-600">Готов</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                      <i class="fas fa-truck text-amber-600 text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-xs font-semibold">Ткань в пути</div>
+                      <div class="text-[10px] text-gray-500">Артикул: BL-4521</div>
+                    </div>
+                    <span class="text-xs text-amber-600">2 дня</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Badge -->
+            <div class="absolute -right-6 top-20 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-2 z-10">
+              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-mobile-screen text-green-600 text-sm"></i>
+              </div>
+              <div class="text-xs font-bold text-gray-800">iOS & Android</div>
             </div>
           </div>
         </div>
 
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ========== MOBILE APP ========== -->
-  <section class="py-16 lg:py-28 relative overflow-hidden">
-    <div class="blob-1" style="bottom: -200px; left: -100px; opacity: 0.4;"></div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <div class="gradient-hero rounded-3xl p-8 sm:p-12 lg:p-16 text-center">
-        <div class="max-w-2xl mx-auto">
-          <div class="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-6 backdrop-blur-md">
-            <i class="fas fa-mobile-screen-button text-white text-3xl"></i>
-          </div>
-          <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">
-            Мобильное приложение
-          </h2>
-          <p class="text-lg text-white/80 mb-8">
-            Весь бизнес в кармане. Ничего не теряется. Работайте с проектами, ведите замеры на выезде и контролируйте бизнес — всё со смартфона.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="inline-flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-xl hover:bg-gray-900 transition-all">
-              <i class="fab fa-apple text-2xl"></i>
-              <div class="text-left">
-                <div class="text-[10px] uppercase tracking-wide opacity-80">Загрузите в</div>
-                <div class="font-semibold text-sm -mt-0.5">App Store</div>
+        <!-- Text -->
+        <div class="flex-1 fade-up">
+          <span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-600 rounded-full text-sm font-semibold mb-4">Мобильное приложение</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-6">Весь бизнес<br>в кармане</h2>
+          <p class="text-lg text-gray-500 mb-8 leading-relaxed">Управляйте салоном с телефона: принимайте заказы, контролируйте финансы и будьте на связи с клиентами — где бы вы ни находились.</p>
+          <div class="space-y-4">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-bolt text-brand-600"></i>
               </div>
-            </button>
-            <button class="inline-flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-xl hover:bg-gray-900 transition-all">
-              <i class="fab fa-google-play text-xl"></i>
-              <div class="text-left">
-                <div class="text-[10px] uppercase tracking-wide opacity-80">Доступно в</div>
-                <div class="font-semibold text-sm -mt-0.5">Google Play</div>
+              <div>
+                <div class="font-semibold text-gray-900">Мгновенные уведомления</div>
+                <div class="text-sm text-gray-500">Новый лид, оплата, статус заказа — всё в push-уведомлениях</div>
               </div>
-            </button>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-camera text-brand-600"></i>
+              </div>
+              <div>
+                <div class="font-semibold text-gray-900">Фото с объекта</div>
+                <div class="text-sm text-gray-500">Добавляйте фото до и после монтажа прямо с замера</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-wifi text-brand-600"></i>
+              </div>
+              <div>
+                <div class="font-semibold text-gray-900">Работает офлайн</div>
+                <div class="text-sm text-gray-500">Базовые функции доступны без интернета</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-
-  <!-- ========== FAQ ========== -->
-  <section id="faq" class="py-16 lg:py-28 bg-gray-50">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <div class="inline-flex items-center gap-2 bg-violet-50 rounded-full px-4 py-1.5 mb-4">
-          <i class="fas fa-circle-question text-violet-600 text-xs"></i>
-          <span class="text-violet-600 text-sm font-semibold">FAQ</span>
-        </div>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-          Популярные вопросы
-        </h2>
-      </div>
-
-      <div class="space-y-3" id="faq-list">
-        
-        <div class="faq-item bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
-            <span class="font-semibold text-gray-900 pr-4">Чем сервис отличается от обычных CRM?</span>
-            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 flex-shrink-0"></i>
-          </button>
-          <div class="faq-answer px-5">
-            <p class="text-gray-600 pb-5 leading-relaxed">Наш сервис узкоспециализированный — полностью заточен под текстильный бизнес. Формируется автоматическая калькуляция сметы, спецификации заказа, договоров. Можно отправить заказ поставщику на его бланке, прикрепить фотографии до и после монтажа, разбить заказ по комнатам. Имеется чат между дизайнерами и швеями.</p>
-          </div>
-        </div>
-
-        <div class="faq-item bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
-            <span class="font-semibold text-gray-900 pr-4">Сколько стоит сервис?</span>
-            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 flex-shrink-0"></i>
-          </button>
-          <div class="faq-answer px-5">
-            <p class="text-gray-600 pb-5 leading-relaxed">Стоимость зависит от количества сотрудников. Наиболее популярный тариф «Продвинутый» — 1 салон, владелец и 4 дизайнера: от 2 695 руб/мес при оплате за 12 месяцев. Каждый тариф можно адаптировать с помощью калькулятора в Личном кабинете. Пробный период 14 дней — бесплатно.</p>
-          </div>
-        </div>
-
-        <div class="faq-item bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
-            <span class="font-semibold text-gray-900 pr-4">Могу ли я вносить данные с выезда на замер?</span>
-            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 flex-shrink-0"></i>
-          </button>
-          <div class="faq-answer px-5">
-            <p class="text-gray-600 pb-5 leading-relaxed">Конечно! Мобильное приложение ShtroCRM позволяет вносить замеры, фотографии и комментарии прямо на объекте. Данные синхронизируются мгновенно.</p>
-          </div>
-        </div>
-
-        <div class="faq-item bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
-            <span class="font-semibold text-gray-900 pr-4">Есть ли складской учёт?</span>
-            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 flex-shrink-0"></i>
-          </button>
-          <div class="faq-answer px-5">
-            <p class="text-gray-600 pb-5 leading-relaxed">Да! Вы сможете вести учёт остатков онлайн, видеть списания по заказам, выявлять востребованные ткани, учитывать себестоимость при расчёте зарплат и автоматизировать взаиморасчёты с поставщиками.</p>
-          </div>
-        </div>
-
-        <div class="faq-item bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
-            <span class="font-semibold text-gray-900 pr-4">Поддерживается ли работа с несколькими валютами?</span>
-            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 flex-shrink-0"></i>
-          </button>
-          <div class="faq-answer px-5">
-            <p class="text-gray-600 pb-5 leading-relaxed">Да! Выберите основную валюту и добавьте второстепенные. Курс подгружается автоматически (или можно задать вручную). Товары при продаже автоматически конвертируются в основную валюту по курсу на нужный день.</p>
-          </div>
-        </div>
-
-        <div class="faq-item bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
-            <span class="font-semibold text-gray-900 pr-4">Как рассчитывается зарплата сотрудникам?</span>
-            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 flex-shrink-0"></i>
-          </button>
-          <div class="faq-answer px-5">
-            <p class="text-gray-600 pb-5 leading-relaxed">Поддерживаются разные формы: оклад, простой и сложный процент, автоматический расчёт услуг швеи, процент с продаж акционного товара или услуги. Всё считается автоматически.</p>
-          </div>
-        </div>
-
-        <div class="faq-item bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button class="faq-toggle w-full flex items-center justify-between p-5 text-left">
-            <span class="font-semibold text-gray-900 pr-4">Безопасны ли мои данные?</span>
-            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 flex-shrink-0"></i>
-          </button>
-          <div class="faq-answer px-5">
-            <p class="text-gray-600 pb-5 leading-relaxed">Данные хранятся в защищённом дата-центре. Для передачи информации используется протокол HTTPS с надёжным шифрованием. Мы также поддерживаем ограничение доступов для сотрудников.</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ========== CTA ========== -->
-  <section class="py-16 lg:py-28">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="bg-gradient-to-br from-brand-600 to-brand-800 rounded-3xl p-8 sm:p-12 lg:p-16 text-center relative overflow-hidden">
-        <div class="blob-1" style="top: -100px; right: -150px; opacity: 0.3;"></div>
-        <div class="relative z-10 max-w-2xl mx-auto">
-          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4">
-            Готовы начать?
-          </h2>
-          <p class="text-lg text-white/80 mb-8">
-            14 дней бесплатно. Никаких обязательств. Попробуйте все возможности сервиса прямо сейчас.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="inline-flex items-center justify-center gap-2 bg-white text-brand-700 font-bold px-8 py-4 rounded-2xl hover:bg-gray-50 transition-all shadow-lg text-lg">
-              <i class="fas fa-rocket"></i>
-              Начать бесплатно
-            </button>
-            <button class="inline-flex items-center justify-center gap-2 glass-card text-white font-semibold px-8 py-4 rounded-2xl hover:bg-white/15 transition-all text-lg">
-              <i class="fas fa-phone"></i>
-              Связаться с нами
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ========== FOOTER ========== -->
-  <footer class="bg-gray-900 text-gray-400 pt-16 pb-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-        
-        <!-- Brand -->
+  <!-- ==================== USP ==================== -->
+  <section class="py-16 bg-brand-600">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="grid md:grid-cols-3 gap-8 text-center fade-up">
         <div>
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-9 h-9 rounded-xl gradient-accent flex items-center justify-center">
+          <div class="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-rocket text-white text-xl"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">Всё готово к работе</h4>
+          <p class="text-white/70 text-sm">Сервис на 100% подстроен под процессы салона штор. Никаких дополнительных настроек</p>
+        </div>
+        <div>
+          <div class="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-wand-magic-sparkles text-white text-xl"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">Очень просто</h4>
+          <p class="text-white/70 text-sm">Расчёты полностью автоматизированы. Вам не нужно быть бухгалтером — оставайтесь дизайнером</p>
+        </div>
+        <div>
+          <div class="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-laptop-mobile text-white text-xl"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">Удобно</h4>
+          <p class="text-white/70 text-sm">Работайте на компьютере и через мобильное приложение — бизнес всегда под контролем</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FAQ ==================== -->
+  <section id="faq" class="py-20 md:py-28 bg-white">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-14 fade-up">
+        <span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-600 rounded-full text-sm font-semibold mb-4">FAQ</span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Популярные вопросы</h2>
+      </div>
+
+      <div class="space-y-3 fade-up">
+        <!-- FAQ 1 -->
+        <div class="faq-item border border-gray-200 rounded-2xl overflow-hidden">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+            <span class="font-semibold text-gray-900 pr-4">Чем ШторCRM отличается от обычных CRM?</span>
+            <i class="fas fa-chevron-down text-gray-400 faq-chevron flex-shrink-0"></i>
+          </button>
+          <div class="faq-answer px-6">
+            <p class="text-gray-600 leading-relaxed">Наш сервис узкоспециализированный — в нём любой дизайнер по шторам будет чувствовать себя как дома. Калькуляция сметы, спецификация заказа, документы — всё формируется автоматически. Никаких долгих настроек и интеграций.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 2 -->
+        <div class="faq-item border border-gray-200 rounded-2xl overflow-hidden">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+            <span class="font-semibold text-gray-900 pr-4">Сколько стоит сервис?</span>
+            <i class="fas fa-chevron-down text-gray-400 faq-chevron flex-shrink-0"></i>
+          </button>
+          <div class="faq-answer px-6">
+            <p class="text-gray-600 leading-relaxed">Стоимость зависит от количества сотрудников. Наиболее популярный тариф «Продвинутый»: 1 салон, владелец и 4 дизайнера — от 2 695 ₽/мес. У всех тарифов есть 14-дневный бесплатный период.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 3 -->
+        <div class="faq-item border border-gray-200 rounded-2xl overflow-hidden">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+            <span class="font-semibold text-gray-900 pr-4">Можно ли вносить данные с объекта замера?</span>
+            <i class="fas fa-chevron-down text-gray-400 faq-chevron flex-shrink-0"></i>
+          </button>
+          <div class="faq-answer px-6">
+            <p class="text-gray-600 leading-relaxed">Конечно! Мобильное приложение позволяет вносить данные, делать фотографии и отправлять заказы прямо с объекта. Работает на iOS и Android.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 4 -->
+        <div class="faq-item border border-gray-200 rounded-2xl overflow-hidden">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+            <span class="font-semibold text-gray-900 pr-4">Есть ли складской учёт?</span>
+            <i class="fas fa-chevron-down text-gray-400 faq-chevron flex-shrink-0"></i>
+          </button>
+          <div class="faq-answer px-6">
+            <p class="text-gray-600 leading-relaxed">Да, полноценный складской учёт: остатки онлайн, списания по заказам, себестоимость товаров, автоматические взаиморасчёты с поставщиками и анализ востребованности тканей.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 5 -->
+        <div class="faq-item border border-gray-200 rounded-2xl overflow-hidden">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+            <span class="font-semibold text-gray-900 pr-4">Как рассчитывается зарплата сотрудникам?</span>
+            <i class="fas fa-chevron-down text-gray-400 faq-chevron flex-shrink-0"></i>
+          </button>
+          <div class="faq-answer px-6">
+            <p class="text-gray-600 leading-relaxed">Реализованы различные формы расчёта: оклад, простой и сложный процент, автоматический расчёт услуг швеи и даже процент с продаж акционного товара. Всё настраивается под ваш формат работы.</p>
+          </div>
+        </div>
+
+        <!-- FAQ 6 -->
+        <div class="faq-item border border-gray-200 rounded-2xl overflow-hidden">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+            <span class="font-semibold text-gray-900 pr-4">Безопасны ли мои данные?</span>
+            <i class="fas fa-chevron-down text-gray-400 faq-chevron flex-shrink-0"></i>
+          </button>
+          <div class="faq-answer px-6">
+            <p class="text-gray-600 leading-relaxed">Данные хранятся в современном дата-центре с резервным копированием. Для передачи используется защищённый протокол HTTPS с надёжным шифрованием.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== CTA ==================== -->
+  <section class="py-20 hero-gradient relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="float-shape absolute top-10 right-[20%] w-20 h-20 bg-white/5 rounded-2xl"></div>
+      <div class="float-shape absolute bottom-10 left-[15%] w-16 h-16 bg-white/5 rounded-full"></div>
+    </div>
+    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-6">Готовы попробовать?</h2>
+      <p class="text-lg text-white/75 mb-8 max-w-xl mx-auto">14 дней бесплатно. Без карты. Полный функционал. Поддержка куратора поможет разобраться в сервисе.</p>
+      <a href="#pricing" class="inline-flex items-center gap-2 px-10 py-4 bg-white text-brand-700 font-bold rounded-2xl hover:bg-brand-50 transition-all shadow-xl shadow-black/10 text-lg">
+        Начать бесплатно
+        <i class="fas fa-arrow-right text-sm"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-gray-900 text-gray-400 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="grid md:grid-cols-4 gap-10 mb-12">
+        <div class="md:col-span-1">
+          <a href="#" class="flex items-center gap-2 mb-4">
+            <div class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center">
               <i class="fas fa-scissors text-white text-sm"></i>
             </div>
-            <span class="text-xl font-bold text-white">Shtro<span class="text-accent-400">CRM</span></span>
-          </div>
-          <p class="text-sm leading-relaxed mb-4">CRM и управленческий учёт для дизайнеров по текстилю и салонов штор</p>
-          <div class="flex gap-3">
-            <a href="#" class="w-9 h-9 rounded-lg bg-gray-800 hover:bg-brand-600 flex items-center justify-center transition-colors"><i class="fab fa-telegram text-sm"></i></a>
-            <a href="#" class="w-9 h-9 rounded-lg bg-gray-800 hover:bg-brand-600 flex items-center justify-center transition-colors"><i class="fab fa-vk text-sm"></i></a>
-            <a href="#" class="w-9 h-9 rounded-lg bg-gray-800 hover:bg-brand-600 flex items-center justify-center transition-colors"><i class="fab fa-youtube text-sm"></i></a>
-            <a href="#" class="w-9 h-9 rounded-lg bg-gray-800 hover:bg-brand-600 flex items-center justify-center transition-colors"><i class="fab fa-instagram text-sm"></i></a>
-          </div>
+            <span class="text-xl font-bold text-white">Штор<span class="text-brand-400">CRM</span></span>
+          </a>
+          <p class="text-sm leading-relaxed">CRM и учёт для дизайнеров по текстилю и салонов штор</p>
         </div>
-
-        <!-- Возможности -->
         <div>
-          <h4 class="text-white font-semibold mb-4">Возможности</h4>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#" class="hover:text-white transition-colors">Воронка продаж</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Работа с поставщиками</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Дашборд и аналитика</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Финансовый учёт</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Складской учёт</a></li>
-          </ul>
-        </div>
-
-        <!-- Компания -->
-        <div>
-          <h4 class="text-white font-semibold mb-4">Компания</h4>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#" class="hover:text-white transition-colors">О нас</a></li>
+          <h5 class="text-white font-semibold mb-4">Продукт</h5>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="#features" class="hover:text-white transition-colors">Возможности</a></li>
+            <li><a href="#pricing" class="hover:text-white transition-colors">Тарифы</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Приложение</a></li>
             <li><a href="#" class="hover:text-white transition-colors">Блог</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Партнёры</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Видеоуроки</a></li>
           </ul>
         </div>
-
-        <!-- Контакты -->
         <div>
-          <h4 class="text-white font-semibold mb-4">Контакты</h4>
-          <ul class="space-y-3 text-sm">
-            <li class="flex items-center gap-2"><i class="fas fa-envelope text-brand-400"></i><a href="mailto:info@shtrocrm.ru" class="hover:text-white transition-colors">info@shtrocrm.ru</a></li>
-            <li class="flex items-center gap-2"><i class="fas fa-phone text-brand-400"></i><a href="tel:+78001234567" class="hover:text-white transition-colors">8 (800) 123-45-67</a></li>
+          <h5 class="text-white font-semibold mb-4">Поддержка</h5>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="#faq" class="hover:text-white transition-colors">FAQ</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Видеоуроки</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Документация</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Связаться с нами</a></li>
           </ul>
+        </div>
+        <div>
+          <h5 class="text-white font-semibold mb-4">Контакты</h5>
+          <ul class="space-y-2.5 text-sm">
+            <li><i class="fas fa-envelope mr-2 text-brand-400"></i>info@shtorcrm.ru</li>
+            <li><i class="fas fa-phone mr-2 text-brand-400"></i>+7 (800) 123-45-67</li>
+          </ul>
+          <div class="flex items-center gap-3 mt-5">
+            <a href="#" class="w-9 h-9 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-brand-600 transition-colors">
+              <i class="fab fa-telegram text-sm"></i>
+            </a>
+            <a href="#" class="w-9 h-9 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-brand-600 transition-colors">
+              <i class="fab fa-vk text-sm"></i>
+            </a>
+            <a href="#" class="w-9 h-9 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-brand-600 transition-colors">
+              <i class="fab fa-youtube text-sm"></i>
+            </a>
+            <a href="#" class="w-9 h-9 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-brand-600 transition-colors">
+              <i class="fab fa-instagram text-sm"></i>
+            </a>
+          </div>
         </div>
       </div>
 
-      <div class="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="text-sm">&copy; 2014&ndash;2026 ShtroCRM. Все права защищены.</div>
-        <div class="flex gap-4 text-sm">
+      <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-sm">&copy; 2024–2026 ШторCRM. Все права защищены.</p>
+        <div class="flex items-center gap-6 text-sm">
           <a href="#" class="hover:text-white transition-colors">Политика конфиденциальности</a>
           <a href="#" class="hover:text-white transition-colors">Пользовательское соглашение</a>
         </div>
@@ -896,112 +983,89 @@ app.get('/', (c) => {
     </div>
   </footer>
 
-
-  <!-- ========== SCRIPTS ========== -->
+  <!-- ==================== SCRIPTS ==================== -->
   <script>
-  (function() {
-    // === Sticky header ===
-    const header = document.getElementById('header');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 60) {
-        header.classList.add('bg-white/95', 'backdrop-blur-md', 'shadow-sm');
-      } else {
-        header.classList.remove('bg-white/95', 'backdrop-blur-md', 'shadow-sm');
-      }
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    let menuOpen = false;
+
+    mobileMenuBtn.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      mobileMenu.classList.toggle('open', menuOpen);
+      mobileMenuBtn.querySelector('i').className = menuOpen ? 'fas fa-times text-gray-600 text-lg' : 'fas fa-bars text-gray-600 text-lg';
     });
 
-    // === Mobile menu ===
-    const burgerBtn = document.getElementById('burger-btn');
-    const closeMenuBtn = document.getElementById('close-menu-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
-    const menuOverlay = document.getElementById('menu-overlay');
-
-    function openMenu() {
-      mobileMenu.classList.add('open');
-      menuOverlay.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeMenu() {
-      mobileMenu.classList.remove('open');
-      menuOverlay.classList.add('hidden');
-      document.body.style.overflow = '';
-    }
-
-    burgerBtn.addEventListener('click', openMenu);
-    closeMenuBtn.addEventListener('click', closeMenu);
-    menuOverlay.addEventListener('click', closeMenu);
-
-    document.querySelectorAll('.mobile-link').forEach(link => {
-      link.addEventListener('click', closeMenu);
-    });
-
-    // === Pricing toggle ===
-    const btn12 = document.getElementById('btn-12m');
-    const btn6 = document.getElementById('btn-6m');
-    const priceValues = document.querySelectorAll('.price-value');
-    let currentPeriod = 12;
-
-    function setPeriod(period) {
-      currentPeriod = period;
-      priceValues.forEach(el => {
-        el.textContent = el.dataset['price' + period];
+    // Close mobile menu on link click
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        menuOpen = false;
+        mobileMenu.classList.remove('open');
+        mobileMenuBtn.querySelector('i').className = 'fas fa-bars text-gray-600 text-lg';
       });
+    });
+
+    // Pricing toggle
+    function togglePricing(period) {
+      const btn12 = document.getElementById('toggle12');
+      const btn6 = document.getElementById('toggle6');
+      const prices = document.querySelectorAll('.price-value');
+
       if (period === 12) {
-        btn12.classList.add('bg-brand-600', 'text-white', 'shadow-md');
-        btn12.classList.remove('text-gray-600');
-        btn6.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
-        btn6.classList.add('text-gray-600');
+        btn12.className = 'px-6 py-2.5 rounded-full text-sm font-semibold transition-all bg-brand-600 text-white shadow-md';
+        btn6.className = 'px-6 py-2.5 rounded-full text-sm font-semibold transition-all text-gray-600 hover:text-gray-800';
       } else {
-        btn6.classList.add('bg-brand-600', 'text-white', 'shadow-md');
-        btn6.classList.remove('text-gray-600');
-        btn12.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
-        btn12.classList.add('text-gray-600');
+        btn6.className = 'px-6 py-2.5 rounded-full text-sm font-semibold transition-all bg-brand-600 text-white shadow-md';
+        btn12.className = 'px-6 py-2.5 rounded-full text-sm font-semibold transition-all text-gray-600 hover:text-gray-800';
+      }
+
+      prices.forEach(el => {
+        const newPrice = el.getAttribute('data-price-' + period);
+        el.textContent = newPrice;
+      });
+    }
+
+    // FAQ accordion
+    function toggleFaq(btn) {
+      const item = btn.closest('.faq-item');
+      const answer = item.querySelector('.faq-answer');
+      const chevron = btn.querySelector('.faq-chevron');
+      const isOpen = answer.classList.contains('open');
+
+      // Close all
+      document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+      document.querySelectorAll('.faq-chevron').forEach(c => c.classList.remove('rotated'));
+
+      // Toggle current
+      if (!isOpen) {
+        answer.classList.add('open');
+        chevron.classList.add('rotated');
       }
     }
 
-    btn12.addEventListener('click', () => setPeriod(12));
-    btn6.addEventListener('click', () => setPeriod(6));
-
-    // === FAQ Accordion ===
-    document.querySelectorAll('.faq-toggle').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const answer = btn.nextElementSibling;
-        const icon = btn.querySelector('i');
-        const isOpen = answer.classList.contains('open');
-
-        // Close all
-        document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
-        document.querySelectorAll('.faq-toggle i').forEach(i => i.classList.remove('rotate-180'));
-
-        if (!isOpen) {
-          answer.classList.add('open');
-          icon.classList.add('rotate-180');
-        }
-      });
-    });
-
-    // === Scroll animations ===
+    // Scroll animations (Intersection Observer)
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('animate-fade-in');
-          observer.unobserve(entry.target);
+          entry.target.classList.add('visible');
         }
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-    document.querySelectorAll('.feature-card, .faq-item, .pricing-card').forEach(el => {
-      el.style.opacity = '0';
-      observer.observe(el);
-    });
-  })();
-  </script>
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
+    // Header scroll effect
+    const header = document.querySelector('header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 10) {
+        header.classList.add('shadow-md');
+      } else {
+        header.classList.remove('shadow-md');
+      }
+    });
+  </script>
 </body>
 </html>`)
 })
-
-// API routes
-app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))
 
 export default app
