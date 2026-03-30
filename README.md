@@ -1,21 +1,72 @@
-```txt
-npm install
-npm run dev
+# ShtroCRM - CRM и Учёт для салонов штор
+
+## Обзор проекта
+- **Название**: ShtroCRM
+- **Цель**: Упрощённый лендинг-сайт CRM-системы для дизайнеров по текстилю и салонов штор (по мотивам aspiot.ru)
+- **Тип**: Одностраничный лендинг (SPA)
+
+## Реализованные секции
+1. **Header** — фиксированная шапка с навигацией, логотипом и кнопками CTA. Становится белой при скролле.
+2. **Hero** — градиентная секция с заголовком, описанием, CTA-кнопками и статистикой (500+ салонов, 4 страны, 50+ поставщиков, 14 дней бесплатно)
+3. **Quick Features** (4 карточки) — Мессенджеры, Заявки с сайта, Выгрузка в 1С, Кассовые чеки
+4. **Подробные возможности** (4 блока) — Управление клиентами, Работа с поставщиками, Дашборд и аналитика, Финансы
+5. **Как это работает** — 4 шага после регистрации
+6. **Тарифы** — 4 плана с переключателем 12/6 месяцев (Дизайнер, Базовый, Продвинутый, Корпоративный)
+7. **Отзывы** — 3 карточки с отзывами клиентов
+8. **Мобильное приложение** — секция с кнопками App Store / Google Play
+9. **FAQ** — 7 вопросов с аккордеоном
+10. **CTA-блок** — призыв к действию перед футером
+11. **Footer** — навигация, контакты, соц. сети, юридические ссылки
+
+## Интерактивность
+- Переключатель тарифов (12 / 6 месяцев) с анимацией цен
+- FAQ-аккордеон (раскрытие/скрытие ответов)
+- Мобильное меню (burger → side panel)
+- Sticky header с размытым фоном при скролле
+- Scroll-анимации (fade-in при появлении элементов)
+- Hover-эффекты на карточках
+
+## Технологии
+- **Backend**: Hono (TypeScript) — edge-first framework
+- **Frontend**: Tailwind CSS (CDN), Font Awesome icons, Google Fonts (Inter)
+- **Деплой**: Cloudflare Pages + Wrangler
+- **Процесс**: PM2 для управления dev-сервером
+
+## URL
+- **Sandbox**: https://3000-i36bmkjfwcvk1ytxbl5l2-a402f90a.sandbox.novita.ai
+
+## API
+- `GET /` — главная страница (HTML)
+- `GET /api/health` — health check (JSON)
+
+## Структура проекта
+```
+webapp/
+├── src/
+│   └── index.tsx           # Главный Hono-приложение с полным HTML
+├── public/
+│   ├── favicon.svg         # SVG-иконка сайта
+│   ├── _routes.json        # Маршрутизация Cloudflare Pages
+│   └── static/
+│       └── style.css       # Дополнительные стили
+├── ecosystem.config.cjs    # PM2 конфигурация
+├── vite.config.ts          # Vite + Hono build config
+├── wrangler.jsonc          # Cloudflare конфигурация
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-```txt
-npm run deploy
-```
+## Деплой
+- **Платформа**: Cloudflare Pages
+- **Статус**: Запущен в sandbox
+- **Стек**: Hono + TypeScript + Tailwind CSS + Font Awesome
+- **Последнее обновление**: 2026-03-30
 
-[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
-
-```txt
-npm run cf-typegen
-```
-
-Pass the `CloudflareBindings` as generics when instantiation `Hono`:
-
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: CloudflareBindings }>()
-```
+## Рекомендуемые следующие шаги
+1. Добавить форму регистрации с backend-обработкой
+2. Подключить D1 базу данных для хранения заявок
+3. Добавить блог-секцию
+4. Реализовать страницу личного кабинета
+5. Интеграция с Telegram-ботом для уведомлений
+6. Деплой на Cloudflare Pages (production)
